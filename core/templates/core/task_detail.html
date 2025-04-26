@@ -1,0 +1,118 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ task.title }} - ToDoManagement{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+        <!-- Task Header -->
+        <div class="px-6 py-5 border-b border-gray-200">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">{{ task.title }}</h1>
+                    <p class="mt-1 text-sm text-gray-500">
+                        Created by {{ task.organization.manager.username }} in {{ task.organization.name }}
+                    </p>
+                </div>
+                <div class="flex space-x-2">
+                    {% if task.organization.manager == user %}
+                        <a href="{% url 'task_update' task.pk %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            Edit Task
+                        </a>
+                        <a href="{% url 'task_delete' task.pk %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
+                            Delete Task
+                        </a>
+                    {% endif %}
+                    {% if task.status == 'P' and user in task.assignees.all %}
+                        <a href="{% url 'mark_task_complete' task.pk %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
+                            Mark Complete
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Details -->
+        <div class="px-6 py-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Left Column -->
+                <div class="space-y-6">
+                    <!-- Description -->
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900">Description</h3>
+                        <div class="mt-2 prose prose-sm text-gray-500">
+                            {{ task.description|linebreaks }}
+                        </div>
+                    </div>
+
+                    <!-- Status and Priority -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500">Status</h3>
+                            <p class="mt-1">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if task.status == 'P' %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-green-100 text-green-800{% endif %}">
+                                    {{ task.get_status_display }}
+                                </span>
+                            </p>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500">Priority</h3>
+                            <p class="mt-1">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if task.priority == 'H' %}bg-red-100 text-red-800
+                                    {% elif task.priority == 'M' %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-green-100 text-green-800{% endif %}">
+                                    {{ task.get_priority_display }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Deadline -->
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500">Deadline</h3>
+                        <p class="mt-1 text-sm text-gray-900">{{ task.deadline|date:"F d, Y H:i" }}</p>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="space-y-6">
+                    <!-- Assignees -->
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900">Assignees</h3>
+                        <div class="mt-2">
+                            {% if task.assignees.all %}
+                                <ul class="divide-y divide-gray-200">
+                                    {% for assignee in task.assignees.all %}
+                                        <li class="py-3 flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <div class="ml-3">
+                                                    <p class="text-sm font-medium text-gray-900">{{ assignee.username }}</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-sm text-gray-500">No assignees</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Organization -->
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900">Organization</h3>
+                        <div class="mt-2">
+                            <a href="{% url 'organization_detail' task.organization.pk %}" class="text-blue-600 hover:text-blue-800">
+                                {{ task.organization.name }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

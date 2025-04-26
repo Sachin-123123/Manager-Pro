@@ -1,0 +1,105 @@
+{% extends 'core/base.html' %}
+
+{% block title %}
+    {% if form.instance.pk %}Edit Organization{% else %}Create Organization{% endif %} - ToDoManagement
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white shadow-xl rounded-xl overflow-hidden transform transition-all hover:shadow-2xl duration-300">
+            <!-- Header Section -->
+            <div class="px-8 py-6 border-b border-gray-200 bg-gradient-to-r from-indigo-500 to-blue-600">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="h-12 w-12 rounded-full bg-white bg-opacity-20 backdrop-blur-lg flex items-center justify-center transform transition-transform duration-300 hover:rotate-12">
+                            <svg class="h-7 w-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-5">
+                        <h1 class="text-2xl font-bold text-white">
+                            {% if form.instance.pk %}Edit Organization{% else %}Create Organization{% endif %}
+                        </h1>
+                        <p class="mt-1 text-sm text-indigo-100">
+                            {% if form.instance.pk %}
+                                Update your organization's information and settings.
+                            {% else %}
+                                Create a new organization to manage tasks and collaborate with team members.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Section -->
+            <div class="px-8 py-8 space-y-8">
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Name Field -->
+                    <div class="group">
+                        <label for="{{ form.name.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2 transition-colors duration-200 group-hover:text-indigo-600">
+                            Organization Name
+                        </label>
+                        <div class="relative rounded-lg shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400 transition-colors duration-200 group-hover:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                            </div>
+                            <input type="text" name="{{ form.name.name }}" id="{{ form.name.id_for_label }}" 
+                                   class="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 hover:border-indigo-300"
+                                   value="{{ form.name.value|default:'' }}"
+                                   placeholder="Enter organization name">
+                        </div>
+                        {% if form.name.errors %}
+                            <p class="mt-2 text-sm text-red-600 animate-bounce">{{ form.name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Description Field -->
+                    <div class="group">
+                        <label for="{{ form.description.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2 transition-colors duration-200 group-hover:text-indigo-600">
+                            Description
+                        </label>
+                        <div class="relative rounded-lg shadow-sm">
+                            <div class="absolute top-3 left-3 flex items-start pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400 transition-colors duration-200 group-hover:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
+                                </svg>
+                            </div>
+                            <textarea name="{{ form.description.name }}" id="{{ form.description.id_for_label }}"
+                                      class="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 hover:border-indigo-300"
+                                      rows="4"
+                                      placeholder="Describe your organization">{{ form.description.value|default:'' }}</textarea>
+                        </div>
+                        {% if form.description.errors %}
+                            <p class="mt-2 text-sm text-red-600 animate-bounce">{{ form.description.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                        <a href="{% url 'organization_list' %}" 
+                           class="inline-flex items-center px-5 py-2.5 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 transform hover:-translate-y-0.5">
+                            <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            Cancel
+                        </a>
+                        <button type="submit" 
+                                class="inline-flex items-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg">
+                            <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            {% if form.instance.pk %}Save Changes{% else %}Create Organization{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

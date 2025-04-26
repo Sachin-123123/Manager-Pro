@@ -1,0 +1,163 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ organization.name }} - ToDoManagement{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Organization Header -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">{{ organization.name }}</h1>
+                <p class="mt-2 text-gray-600">{{ organization.description }}</p>
+            </div>
+            {% if organization.manager == user %}
+                <div class="flex space-x-2">
+                    <a href="{% url 'organization_update' organization.pk %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Edit Organization
+                    </a>
+                    <a href="{% url 'organization_delete' organization.pk %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
+                        Delete Organization
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Organization Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Tasks</h3>
+            <p class="text-3xl font-bold text-blue-600">{{ tasks.count }}</p>
+            <p class="text-sm text-gray-500 mt-1">Total tasks in this organization</p>
+        </div>
+        <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Members</h3>
+            <p class="text-3xl font-bold text-blue-600">{{ members.count }}</p>
+            <p class="text-sm text-gray-500 mt-1">Total members in this organization</p>
+        </div>
+        <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Manager</h3>
+            <p class="text-lg font-semibold text-gray-900">{{ organization.manager.username }}</p>
+            <p class="text-sm text-gray-500 mt-1">Organization manager</p>
+        </div>
+    </div>
+
+    <!-- Members Section -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-900">Members</h2>
+            {% if organization.manager == user %}
+                <a href="{% url 'add_member' organization.pk %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                    Add Member
+                </a>
+            {% endif %}
+        </div>
+        {% if members %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                            {% if organization.manager == user %}
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for membership in members %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">{{ membership.user.username }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        {% if membership.role == 'M' %}bg-blue-100 text-blue-800
+                                        {% else %}bg-green-100 text-green-800{% endif %}">
+                                        {{ membership.get_role_display }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ membership.joined_at|date:"M d, Y" }}
+                                </td>
+                                {% if organization.manager == user and membership.role == 'm' %}
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <a href="{% url 'remove_member' organization.pk membership.user.pk %}" class="text-red-600 hover:text-red-900">Remove</a>
+                                    </td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-gray-600">No members in this organization yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Tasks Section -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-900">Tasks</h2>
+            {% if organization.manager == user %}
+                <a href="{% url 'task_create' organization.pk %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                    Create Task
+                </a>
+            {% endif %}
+        </div>
+        {% if tasks %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deadline</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for task in tasks %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">{{ task.title }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ task.deadline|date:"M d, Y H:i" }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        {% if task.priority == 'H' %}bg-red-100 text-red-800
+                                        {% elif task.priority == 'M' %}bg-yellow-100 text-yellow-800
+                                        {% else %}bg-green-100 text-green-800{% endif %}">
+                                        {{ task.get_priority_display }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        {% if task.status == 'P' %}bg-yellow-100 text-yellow-800
+                                        {% else %}bg-green-100 text-green-800{% endif %}">
+                                        {{ task.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <a href="{% url 'task_detail' task.pk %}" class="text-blue-600 hover:text-blue-900">View</a>
+                                    {% if organization.manager == user %}
+                                        <a href="{% url 'task_update' task.pk %}" class="ml-3 text-gray-600 hover:text-gray-900">Edit</a>
+                                        <a href="{% url 'task_delete' task.pk %}" class="ml-3 text-red-600 hover:text-red-900">Delete</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-gray-600">No tasks in this organization yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

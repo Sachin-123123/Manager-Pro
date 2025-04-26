@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ToDoManagement{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <a href="{% url 'dashboard' %}" class="text-2xl font-bold text-blue-600">ToDoManagement</a>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    {% if user.is_authenticated %}
+                        <div class="relative ml-3">
+                            <div class="flex items-center space-x-4">
+                                <a href="{% url 'personal_todo_list' %}" class="text-gray-700 hover:text-blue-600">Personal To-Dos</a>
+                                <a href="{% url 'task_list' %}" class="text-gray-700 hover:text-blue-600">Tasks</a>
+                                <a href="{% url 'organization_list' %}" class="text-gray-700 hover:text-blue-600">Organizations</a>
+                                <div class="relative">
+                                    <button class="text-gray-700 hover:text-blue-600 focus:outline-none" id="notificationButton">
+                                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                                        </svg>
+                                        {% if unread_notifications_count > 0 %}
+                                            <span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white"></span>
+                                        {% endif %}
+                                    </button>
+
+                                    <!-- Notification Dropdown -->
+                                    <div id="notificationDropdown" class="hidden origin-top-right absolute right-0 mt-2 w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="notificationButton">
+                                        <div class="py-1">
+                                            <div class="px-4 py-2 border-b border-gray-200">
+                                                <h3 class="text-sm font-medium text-gray-900">Notifications</h3>
+                                            </div>
+                                            <div class="max-h-96 overflow-y-auto">
+                                                {% if notifications %}
+                                                    {% for notification in notifications %}
+                                                        <div class="px-4 py-3 hover:bg-gray-50 {% if not notification.read %}bg-indigo-50{% endif %}" id="notification-{{ notification.id }}">
+                                                            <div class="flex items-start">
+                                                                <div class="flex-shrink-0">
+                                                                    {% if notification.reminder_type == 'deadline' %}
+                                                                        <svg class="h-5 w-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                                        </svg>
+                                                                    {% elif notification.reminder_type == 'overdue' %}
+                                                                        <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                                                        </svg>
+                                                                    {% else %}
+                                                                        <svg class="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                                        </svg>
+                                                                    {% endif %}
+                                                                </div>
+                                                                <div class="ml-3 w-0 flex-1">
+                                                                    <p class="text-sm font-medium text-gray-900">{{ notification.title }}</p>
+                                                                    <p class="mt-1 text-sm text-gray-500">{{ notification.message }}</p>
+                                                                    <div class="mt-2 flex space-x-2">
+                                                                        <button onclick="markAsRead({{ notification.id }})" class="text-sm text-indigo-600 hover:text-indigo-900">Mark as read</button>
+                                                                        {% if notification.task %}
+                                                                            <a href="{% url 'task_detail' notification.task.id %}" class="text-sm text-indigo-600 hover:text-indigo-900">View task</a>
+                                                                        {% elif notification.personal_task %}
+                                                                            <a href="{% url 'personal_todo_detail' notification.personal_task.id %}" class="text-sm text-indigo-600 hover:text-indigo-900">View task</a>
+                                                                        {% endif %}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <div class="px-4 py-3 text-sm text-gray-500 text-center">
+                                                        No notifications
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="relative">
+                                    <button class="text-gray-700 hover:text-blue-600 focus:outline-none" id="user-menu-button">
+                                        {{ user.username }}
+                                        <svg class="h-5 w-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </button>
+                                    <div class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10" id="user-menu">
+                                        <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="text-gray-700 hover:text-blue-600">Login</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                    <div class="p-4 rounded-md {% if message.tags == 'success' %}bg-green-50 text-green-700{% elif message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-blue-50 text-blue-700{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Scripts -->
+    <script>
+        // Toggle user menu
+        const userMenuButton = document.getElementById('user-menu-button');
+        const userMenu = document.getElementById('user-menu');
+        if (userMenuButton && userMenu) {
+            userMenuButton.addEventListener('click', () => {
+                userMenu.classList.toggle('hidden');
+            });
+        }
+
+        // Toggle notification dropdown
+        const notificationButton = document.getElementById('notificationButton');
+        const notificationDropdown = document.getElementById('notificationDropdown');
+
+        notificationButton.addEventListener('click', () => {
+            notificationDropdown.classList.toggle('hidden');
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (event) => {
+            if (userMenu && !userMenuButton.contains(event.target)) {
+                userMenu.classList.add('hidden');
+            }
+            if (notificationDropdown && !notificationButton.contains(event.target)) {
+                notificationDropdown.classList.add('hidden');
+            }
+        });
+
+        // Mark notification as read
+        function markAsRead(notificationId) {
+            fetch(`/notifications/${notificationId}/mark-read/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const notification = document.getElementById(`notification-${notificationId}`);
+                    notification.classList.remove('bg-indigo-50');
+                    updateNotificationBadge();
+                }
+            });
+        }
+
+        // Get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Update notification badge
+        function updateNotificationBadge() {
+            const badge = notificationButton.querySelector('.bg-red-400');
+            if (badge) {
+                badge.remove();
+            }
+        }
+    </script>
+</body>
+</html> 
